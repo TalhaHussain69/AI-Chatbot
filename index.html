@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Chatbot</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-wrapper">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <button id="newChatBtn" class="new-chat-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        New Chat
+      </button>
+    </div>
+    <div class="sidebar-list" id="sidebarList"></div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+
+    <header class="header">
+      <div class="header-left">
+        <button id="sidebarToggleBtn" class="icon-btn sidebar-toggle-btn" title="Toggle Sidebar" aria-label="Toggle Sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <div class="logo">AI</div>
+        <div class="header-text">
+          <h1 class="title">AI Chatbot</h1>
+          <span class="creator-name">Created by Talha Hussain</span>
+          <span class="status"><span class="status-dot"></span>Online</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="clearChatBtn" class="icon-btn" title="Clear Current Chat" aria-label="Clear Current Chat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6h18"/>
+            <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="chat-area" id="chatArea">
+      <div class="empty-state" id="emptyState">
+        <p>Start a conversation</p>
+      </div>
+    </main>
+
+    <div class="typing-indicator" id="typingIndicator">
+      <div class="typing-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <footer class="input-area">
+      <div class="listening-indicator" id="listeningIndicator">
+        <span class="listening-dot"></span>
+        Listening...
+      </div>
+      <div class="input-wrapper">
+        <textarea id="messageInput" class="message-input" placeholder="Message AI Chatbot..." rows="1" aria-label="Type your message"></textarea>
+        <button id="micBtn" class="icon-btn mic-btn" title="Voice Input" aria-label="Voice Input">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
+        <button id="sendBtn" class="icon-btn send-btn" title="Send Message" aria-label="Send Message" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+    </footer>
+
+  </div>
+
+</div>
+
+<script type="module" src="config.js"></script>
+<script type="module" src="js/api.js"></script>
+<script type="module" src="js/ui.js"></script>
+<script type="module" src="js/voice.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
