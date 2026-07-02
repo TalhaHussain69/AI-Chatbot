@@ -15,6 +15,15 @@ import {
 
 import { sendMessageToAI } from './api.js';
 import { initVoiceInput } from './voice.js';
+import { IDENTITY_ANSWER, isIdentityQuestion } from './identity.js';
+import {
+  signUpWithEmail,
+  signInWithEmail,
+  signInWithGoogle,
+  logout,
+  onAuthChange,
+  getAuthErrorMessage
+} from './auth.js';
 
 const messageInput = document.getElementById('messageInput');
 const sendBtn = document.getElementById('sendBtn');
@@ -22,12 +31,107 @@ const clearChatBtn = document.getElementById('clearChatBtn');
 const newChatBtn = document.getElementById('newChatBtn');
 const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
 const sidebarOverlay = document.getElementById('sidebarOverlay');
+const logoutBtn = document.getElementById('logoutBtn');
+const userNameDisplay = document.getElementById('userNameDisplay');
 
-const SESSIONS_KEY = 'ai_chatbot_sessions';
-const ACTIVE_SESSION_KEY = 'ai_chatbot_active_session';
+const authScreen = document.getElementById('authScreen');
+const appWrapper = document.getElementById('appWrapper');
+const authForm = document.getElementById('authForm');
+const authTitle = document.getElementById('authTitle');
+const authSubtitle = document.getElementById('authSubtitle');
+const authSubmitBtn = document.getElementById('authSubmitBtn');
+const authError = document.getElementById('authError');
+const authToggleBtn = document.getElementById('authToggleBtn');
+const authToggleText = document.getElementById('authToggleText');
+const nameField = document.getElementById('nameField');
+const nameInput = document.getElementById('nameInput');
+const emailInput = document.getElementById('emailInput');
+const passwordInput = document.getElementById('passwordInput');
+const googleSignInBtn = document.getElementById('googleSignInBtn');
 
+let isSignUpMode = false;
+let currentUserId = null;
 let sessions = [];
 let activeSessionId = null;
+
+function getSessionsKey() {
+  return `ai_chatbot_sessions_${currentUserId}`;
+}
+
+function getActiveSessionKey() {
+  return `ai_chatbot_active_session_${currentUserId}`;
+}
+
+function showAuthError(message) {
+  authError.textContent = message;
+  authError.classList.add('active');
+}
+
+function hideAuthError() {
+  authError.classList.remove('active');
+}
+
+function toggleAuthMode() {
+  isSignUpMode = !isSignUpMode;
+  hideAuthError();
+
+  if (isSignUpMode) {
+    authTitle.textContent = 'Create Account';
+    authSubtitle.textContent = 'Sign up to start chatting';
+    authSubmitBtn.textContent = 'Sign Up';
+    nameField.style.display = 'flex';
+    authToggleText.textContent = 'Already have an account?';
+    authToggleBtn.textContent = 'Sign In';
+  } else {
+    authTitle.textContent = 'Welcome Back';
+    authSubtitle.textContent = 'Sign in to continue to AI Chatbot';
+    authSubmitBtn.textContent = 'Sign In';
+    nameField.style.display = 'none';
+    authToggleText.textContent = "Don't have an account?";
+    authToggleBtn.textContent = 'Sign Up';
+  }
+}
+
+authToggleBtn.addEventListener('click', toggleAuthMode);
+
+authForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hideAuthError();
+  authSubmitBtn.disabled = true;
+
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+  const name = nameInput.value.trim();
+
+  try {
+    if (isSignUpMode) {
+      if (!name) {
+        showAuthError('Please enter your name.');
+        authSubmitBtn.disabled = false;
+        return;
+      }
+      await signUpWithEmail(name, email, password);
+    } else {
+      await signInWithEmail(email, password);
+    }
+  } catch (error) {
+    showAuthError(getAuthErrorMessage(error.code));
+    authSubmitBtn.disabled = false;
+  }
+});
+
+googleSignInBtn.addEventListener('click', async () => {
+  hideAuthError();
+  try {
+    await signInWithGoogle();
+  } catch (error) {
+    showAuthError(getAuthErrorMessage(error.code));
+  }
+});
+
+logoutBtn.addEventListener('click', async () => {
+  await logout();
+});
 
 function getErrorMessage(errorType) {
   const errorMessages = {
@@ -46,8 +150,8 @@ function generateId() {
 }
 
 function saveSessions() {
-  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
-  localStorage.setItem(ACTIVE_SESSION_KEY, activeSessionId);
+  localStorage.setItem(getSessionsKey(), JSON.stringify(sessions));
+  localStorage.setItem(getActiveSessionKey(), activeSessionId);
 }
 
 function getActiveSession() {
@@ -131,8 +235,8 @@ function addMessageToActiveSession(role, content) {
 }
 
 function loadSessionsFromStorage() {
-  const savedSessions = localStorage.getItem(SESSIONS_KEY);
-  const savedActiveId = localStorage.getItem(ACTIVE_SESSION_KEY);
+  const savedSessions = localStorage.getItem(getSessionsKey());
+  const savedActiveId = localStorage.getItem(getActiveSessionKey());
 
   if (savedSessions) {
     try {
@@ -162,6 +266,16 @@ async function handleSendMessage() {
   const timestamp = addMessageToActiveSession('user', text);
   renderMessage('user', text, timestamp);
   clearInput();
+
+  if (isIdentityQuestion(text)) {
+    showTypingIndicator();
+    setTimeout(() => {
+      hideTypingIndicator();
+      const aiTimestamp = addMessageToActiveSession('ai', IDENTITY_ANSWER);
+      renderMessage('ai', IDENTITY_ANSWER, aiTimestamp);
+    }, 500);
+    return;
+  }
 
   showTypingIndicator();
 
@@ -206,6 +320,23 @@ newChatBtn.addEventListener('click', createNewSession);
 sidebarToggleBtn.addEventListener('click', toggleSidebar);
 sidebarOverlay.addEventListener('click', closeSidebar);
 
-loadSessionsFromStorage();
+onAuthChange((user) => {
+  if (user) {
+    currentUserId = user.uid;
+    userNameDisplay.textContent = user.displayName || user.email;
+    authScreen.style.display = 'none';
+    appWrapper.style.display = 'flex';
+    authForm.reset();
+    authSubmitBtn.disabled = false;
+    loadSessionsFromStorage();
+  } else {
+    currentUserId = null;
+    sessions = [];
+    activeSessionId = null;
+    authScreen.style.display = 'flex';
+    appWrapper.style.display = 'none';
+  }
+});
+
 updateSendButtonState();
 initVoiceInput();
