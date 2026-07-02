@@ -1,4 +1,4 @@
-import { API_URL, API_KEY, MODEL_NAME } from '../config.js';
+import { API_URL, MODEL_NAME } from '../config.js';
 
 function buildMessagesPayload(chatHistory) {
   return chatHistory.map(msg => ({
@@ -19,7 +19,6 @@ export async function sendMessageToAI(chatHistory) {
     response = await fetch(API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
